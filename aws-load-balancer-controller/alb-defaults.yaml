@@ -1,0 +1,27 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: IngressClassParams
+metadata:
+  name: maas-production-public-alb
+spec:
+  scheme: internet-facing
+  ipAddressType: ipv4
+  subnets:
+    ids:
+      - subnet-0d6782d8a98cc5561
+      - subnet-025071875ab6a5dba
+      - subnet-082486d3eaea6a8a2
+  certificateArn:
+    - arn:aws:acm:ap-south-1:772603145339:certificate/e68bff56-74b5-479c-aadd-0666d2990f02
+  sslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+  wafv2AclArn: arn:aws:wafv2:ap-south-1:772603145339:regional/webacl/MaaS-Production-ALB-WAF/eb47fe31-178c-4a83-86ba-74d9d2ce90fd
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: maas-production-public-alb
+spec:
+  controller: ingress.k8s.aws/alb
+  parameters:
+    apiGroup: elbv2.k8s.aws
+    kind: IngressClassParams
+    name: maas-production-public-alb
