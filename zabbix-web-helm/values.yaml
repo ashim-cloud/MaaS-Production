@@ -12,9 +12,9 @@
 
 zabbix:
   # -- Zabbix version — single source of truth for the web image tag.
-  version: "7.0.31"
+  version: "8.0-latest"
   # -- Base image variant (e.g. "ubuntu", "alpine", "ol").
-  baseImage: "ubuntu"
+  baseImage: "alpine"
 
 # ---------------------------------------------------------------------------
 # Ingress — ALB Configuration
@@ -28,10 +28,10 @@ ingress:
   # -- IngressClass name that references the shared ALB IngressClassParams.
   # The IngressClassParams (maas-public-alb) defines: scheme, subnets,
   # ACM cert, WAF, SSL policy, and group name (maas).
-  className: "alb-public"
+  className: "maas-production-public-alb"
 
   # -- Explicit ALB name — must match across all Ingresses sharing the ALB.
-  loadBalancerName: "k8s-maas"
+  loadBalancerName: "k8s-MaaS-Prod-Public-ALB"
 
   # -- ALB health check configuration for the Zabbix web target group.
   # These are per-target-group settings (not ALB-level).
@@ -54,7 +54,7 @@ ingress:
 db:
   ssm:
     # -- SSM Parameter Store path prefix that holds all Zabbix DB credentials.
-    path: "/zabbix-dev/zabbix-db-secret"
+    path: "/zabbix-production/zabbix-db-secret"
     # -- AWS region where the SSM parameters live.
     region: "ap-south-1"
 
@@ -98,7 +98,7 @@ zabbixWeb:
     enabled: true
     # -- Subdomain for the Zabbix web frontend.
     # Route53: Create an ALIAS record  monitoring.prestacknx.co.in → ALB hostname.
-    zabbixHost: "monitoring.prestacknx.co.in"
+    zabbixHost: "monitoring.hamms.space"
 
   # -- ClusterIP Service configuration.
   service:
@@ -117,8 +117,8 @@ zabbixWeb:
       cpu: 200m
       memory: 300Mi
     limits:
-      cpu: 1
-      memory: 1Gi
+      cpu: 500m
+      memory: 800Mi
 
   # -- HorizontalPodAutoscaler configuration.
   # When enabled: true, the Deployment's `replicas` field is omitted entirely
