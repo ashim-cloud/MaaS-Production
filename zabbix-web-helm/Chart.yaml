@@ -8,7 +8,7 @@ description: >-
   via the zabbix-server-active NLB service.
 type: application
 version: 0.1.0
-appVersion: "7.0.31"
+appVersion: "8.0.0"
 keywords:
   - zabbix
   - zabbix-web
