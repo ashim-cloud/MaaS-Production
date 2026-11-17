@@ -226,7 +226,7 @@ spec:
               echo
               echo "Starting Zabbix Server..."
 
-              exec docker-entrypoint.sh -f
+              exec /usr/bin/docker-entrypoint -f
 
 
         # ================================================================
