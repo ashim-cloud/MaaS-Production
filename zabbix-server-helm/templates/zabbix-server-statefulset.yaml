@@ -116,9 +116,6 @@ spec:
             - name: AWS_DEFAULT_REGION
               value: {{ .Values.zabbixServer.ssmInit.region | quote }}
 
-            - name: DB_SERVER_TLS_CONNECT
-              value: "required"
-
             - name: SSM_PATH
               value: {{ .Values.zabbixServer.ssmInit.parameterPath | quote }}
 
@@ -187,7 +184,11 @@ spec:
         # ================================================================
         - name: zabbix-server
           image: {{ include "zabbix-server.image" . }}
-
+          
+          env:
+            - name: ZBX_DBTLSCONNECT
+              value: "required"
+              
           ports:
             - containerPort: 10051
               name: zabbix-server
