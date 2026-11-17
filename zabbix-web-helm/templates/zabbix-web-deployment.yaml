@@ -103,7 +103,7 @@ spec:
               export POSTGRES_USER=$(cat /secrets/user)
               export POSTGRES_PASSWORD=$(cat /secrets/password)
               export POSTGRES_DB=$(cat /secrets/dbname)
-              exec docker-entrypoint.sh
+              exec /usr/bin/docker-entrypoint
 
           env:
             - name: ZBX_SERVER_HOST
