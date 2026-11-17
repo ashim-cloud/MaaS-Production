@@ -34,7 +34,7 @@ vpc:
 zabbixServer:
   # -- Number of server replicas. Zabbix native HA supports 2+ nodes;
   # one will be elected active, the rest are standby.
-  replicaCount: 0
+  replicaCount: 2
 
   image:
     # -- Server image repository. Tag is auto-composed from zabbix.baseImage
