@@ -284,6 +284,13 @@ spec:
               POSTGRES_PASSWORD="$(cat /secrets/password)"
               POSTGRES_DB="$(cat /secrets/dbname)"
 
+              # ================================================================
+              # Require SSL/TLS for PostgreSQL connections
+              # ================================================================
+              export PGSSLMODE=require
+              
+              echo "PostgreSQL SSL mode: $PGSSLMODE"
+
               echo "DB_HOST: configured"
               echo "DB_PORT: configured"
               echo "POSTGRES_USER: configured"
