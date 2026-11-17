@@ -11,7 +11,7 @@
 |-------|-------|
 | **Chart Name** | `zabbix-server` |
 | **Chart Version** | `0.1.0` |
-| **App Version** | `7.0.30` |
+| **App Version** | `8.0.0` |
 | **Type** | `application` |
 | **Purpose** | Deploy Zabbix Server (Native HA) on AWS EKS with external RDS PostgreSQL |
 | **Origin** | Split from monolithic `zabbix-helm` chart |
