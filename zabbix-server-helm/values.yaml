@@ -12,7 +12,7 @@
 
 zabbix:
   # -- Zabbix version — single source of truth for the server image tag.
-  version: "8.0.0"
+  version: "8.0-latest"
   # -- Base image variant (e.g. "ubuntu", "alpine", "ol").
   baseImage: "alpine"
 
