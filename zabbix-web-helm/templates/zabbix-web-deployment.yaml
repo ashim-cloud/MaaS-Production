@@ -106,6 +106,9 @@ spec:
               exec /usr/bin/docker-entrypoint
 
           env:
+            # Require encrypted PostgreSQL connections
+            - name: PGSSLMODE
+              value: "require"
             - name: ZBX_SERVER_HOST
               value: {{ include "zabbix-web.serverServiceName" . | quote }}
             - name: PHP_TZ
