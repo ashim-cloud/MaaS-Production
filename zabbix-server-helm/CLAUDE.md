@@ -60,7 +60,7 @@ Key annotations on the NLB Service:
 ```yaml
 annotations:
   service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-  service.beta.kubernetes.io/aws-load-balancer-name: "maas"              # custom NLB name
+  service.beta.kubernetes.io/aws-load-balancer-name: "maas-prod-pub-nlb" # custom NLB name
   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing" # or "internal"
   service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=true"
   service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-xxx,subnet-yyy,subnet-zzz"
