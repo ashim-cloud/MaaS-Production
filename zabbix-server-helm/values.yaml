@@ -12,9 +12,9 @@
 
 zabbix:
   # -- Zabbix version — single source of truth for the server image tag.
-  version: "7.0.31"
+  version: "8.0.0"
   # -- Base image variant (e.g. "ubuntu", "alpine", "ol").
-  baseImage: "ubuntu"
+  baseImage: "alpine"
 
 # ---------------------------------------------------------------------------
 # VPC / Networking
@@ -80,7 +80,7 @@ zabbixServer:
     # -- SSM Parameter Store path prefix for Zabbix DB credentials.
     # Parameters expected: <path>/host, <path>/port, <path>/user,
     # <path>/password, <path>/dbname (each a SecureString).
-    parameterPath: "/zabbix-dev/zabbix-db-secret"
+    parameterPath: "/zabbix-production/zabbix-db-secret"
 
   # -- Headless Service configuration for StatefulSet pod DNS.
   headlessService:
@@ -94,7 +94,7 @@ zabbixServer:
     # -- Custom name for the AWS Network Load Balancer.
     # Sets the service.beta.kubernetes.io/aws-load-balancer-name annotation.
     # If empty, AWS auto-generates a name from the Service metadata.
-    loadBalancerName: "maas"
+    loadBalancerName: "maas-prod-pub-nlb"
     # -- "internet-facing" or "internal".
     scheme: "internet-facing"
     # -- Preserve the original client IP for agent connections.
