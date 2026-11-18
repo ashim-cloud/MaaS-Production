@@ -1,3 +1,4 @@
+
 {{/*
 =============================================================================
 Zabbix Web — ALB Ingress
@@ -13,7 +14,7 @@ group name) is centralized in the IngressClassParams resource
   - Host-based routing rule
 
 Required values:
-  zabbixWeb.ingress.zabbixHost  — Zabbix subdomain (domain name)
+  zabbixWeb.ingress.zabbixHost — Zabbix subdomain (domain name)
 */}}
 
 {{- if .Values.zabbixWeb.ingress.enabled }}
@@ -27,16 +28,16 @@ metadata:
     {{- include "zabbix-web.labels" . | nindent 4 }}
     app: zabbix-web
   annotations:
-    # ── Per-target-group settings ────────────────────────────────────────────
+    # Per-target-group settings
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/backend-protocol: HTTP
 
-    # ── Health check (per-target-group) ──────────────────────────────────────
-    # Zabbix has no dedicated health endpoint — root path (/) returns HTTP 200.
+    # Health check
+    # Zabbix root path (/) returns HTTP 200.
     alb.ingress.kubernetes.io/healthcheck-path: {{ .Values.ingress.healthCheck.path | quote }}
     alb.ingress.kubernetes.io/success-codes: {{ .Values.ingress.healthCheck.successCodes | quote }}
 
-    # ── HTTP → HTTPS redirect (per-rule) ─────────────────────────────────────
+    # HTTP to HTTPS redirect
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
 
@@ -53,5 +54,4 @@ spec:
                 name: {{ include "zabbix-web.deploymentName" . }}
                 port:
                   number: {{ .Values.zabbixWeb.service.port }}
-{{- end }}
 {{- end }}
