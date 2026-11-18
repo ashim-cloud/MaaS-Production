@@ -43,8 +43,7 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className | quote }}
   rules:
-    {{- if .Values.zabbixWeb.ingress.zabbixHost }}
-    - host: {{ .Values.zabbixWeb.ingress.zabbixHost | quote }}
+    - host: {{ required "zabbixWeb.ingress.zabbixHost is required (shared ALB)" .Values.zabbixWeb.ingress.zabbixHost | quote }}
       http:
         paths:
           - path: /
@@ -54,17 +53,5 @@ spec:
                 name: {{ include "zabbix-web.deploymentName" . }}
                 port:
                   number: {{ .Values.zabbixWeb.service.port }}
-    {{- else }}
-    {{/* No host set — catch-all rule. Use this before Route53 is configured. */}}
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "zabbix-web.deploymentName" . }}
-                port:
-                  number: {{ .Values.zabbixWeb.service.port }}
-    {{- end }}
-
+{{- end }}
 {{- end }}
