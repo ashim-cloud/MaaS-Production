@@ -27,8 +27,8 @@ metadata:
     {{- include "zabbix-web.labels" . | nindent 4 }}
     app: zabbix-web
   annotations:
-    # ── ALB name (shared across all Ingresses in the group) ──────────────────
-    alb.ingress.kubernetes.io/load-balancer-name: {{ .Values.ingress.loadBalancerName | quote }}
+    # ── Shared ALB IngressGroup ──────────────────────────────────────────────
+    alb.ingress.kubernetes.io/group.name: {{ .Values.ingress.groupName | quote }}
 
     # ── Per-target-group settings ────────────────────────────────────────────
     alb.ingress.kubernetes.io/target-type: ip
