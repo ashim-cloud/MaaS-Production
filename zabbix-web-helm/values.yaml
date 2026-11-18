@@ -30,8 +30,8 @@ ingress:
   # ACM cert, WAF, SSL policy, and group name (maas).
   className: "maas-production-public-alb"
 
-  # -- Explicit ALB name — must match across all Ingresses sharing the ALB.
-  loadBalancerName: "k8s-MaaS-Prod-Public-ALB"
+  # -- IngressGroup name shared by all applications using this ALB.
+  groupName: "maas-production-public"
 
   # -- ALB health check configuration for the Zabbix web target group.
   # These are per-target-group settings (not ALB-level).
