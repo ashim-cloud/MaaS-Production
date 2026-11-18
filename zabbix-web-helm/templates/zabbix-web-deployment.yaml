@@ -176,6 +176,15 @@ spec:
 
               rm -f /usr/share/zabbix/modules/Branding/assets/logos/*
 
+              # Install Precision branding configuration when enabled
+              if [ -f /branding-config/brand.conf.php ]; then
+                  cp /branding-config/brand.conf.php /usr/share/zabbix/local/conf/brand.conf.php
+                  chmod 644 /usr/share/zabbix/local/conf/brand.conf.php
+                  echo "Precision branding configuration installed."
+              else
+                  echo "Precision branding is disabled."
+              fi
+
               echo "Temporary Rebrand configuration reset completed."
 
               # Load database credentials from in-memory secrets
@@ -227,8 +236,12 @@ spec:
             - name: rebrand-local-conf-vol
               mountPath: /usr/share/zabbix/local/conf
 
-            # Precision logo assets only
+            # Precision branding configuration and logo assets
             {{- if .Values.branding.enabled }}
+            - name: precision-zabbix-logos
+              mountPath: /branding-config
+              readOnly: true
+
             - mountPath: /usr/share/zabbix/assets/precision-full-logo.svg
               name: precision-zabbix-logos
               readOnly: true
