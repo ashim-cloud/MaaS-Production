@@ -27,9 +27,6 @@ metadata:
     {{- include "zabbix-web.labels" . | nindent 4 }}
     app: zabbix-web
   annotations:
-    # ── Shared ALB IngressGroup ──────────────────────────────────────────────
-    alb.ingress.kubernetes.io/group.name: {{ .Values.ingress.groupName | quote }}
-
     # ── Per-target-group settings ────────────────────────────────────────────
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/backend-protocol: HTTP
