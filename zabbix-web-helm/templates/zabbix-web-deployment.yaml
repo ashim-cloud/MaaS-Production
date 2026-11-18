@@ -1,18 +1,18 @@
+
 {{/*
 =============================================================================
 Zabbix Web — Deployment
 =============================================================================
-Faithful conversion of the original zabbix-web-deploy.yaml Deployment.
+Secrets:
+  ssm-init fetches DB parameters from AWS SSM into an in-memory emptyDir.
 
-ZBX_SERVER_HOST points to the Zabbix Server service name (configurable via
-zabbixServer.serviceName), which within the cluster resolves via ClusterIP.
+Rebrand module:
+  rebrand-init downloads the pinned Keberneth Branding module using the
+  existing Zabbix image and installs it into a temporary emptyDir volume.
 
-Secrets method: AWS SSM Parameter Store + EKS Pod Identity
-  An initContainer (ssm-init) fetches all DB parameters under db.ssm.path
-  at pod startup and writes each to an in-memory volume (emptyDir: medium:
-  Memory). The zabbix-web container reads them from /secrets/* via a shell
-  command before exec-ing docker-entrypoint.sh.
-  Nothing is persisted to etcd or EC2 disk.
+  Rebrand configuration and uploaded logos are stored in temporary volumes.
+  The main container clears this configuration whenever it starts.
+  No PVC, EBS, EFS, or custom image is required.
 */}}
 ---
 apiVersion: apps/v1
@@ -38,11 +38,18 @@ spec:
     spec:
       serviceAccountName: {{ include "zabbix-web.serviceAccountName" . }}
 
-      # ---- In-memory volume — secrets written here by the initContainer ------
+      # ---- Temporary volumes -----------------------------------------------
       volumes:
         - name: secrets-vol
           emptyDir:
             medium: Memory
+
+        - name: rebrand-module-vol
+          emptyDir: {}
+
+        - name: rebrand-local-conf-vol
+          emptyDir: {}
+
         {{- if .Values.branding.enabled }}
         - name: precision-zabbix-logos
           configMap:
@@ -58,8 +65,10 @@ spec:
             name: {{ .Values.branding.configMapName }}-hc-dark
         {{- end }}
 
-      # ---- initContainer: pull SSM parameters before zabbix-web starts -------
+      # ---- Init containers --------------------------------------------------
       initContainers:
+
+        # Fetch database credentials from AWS SSM
         - name: ssm-init
           image: public.ecr.aws/aws-cli/aws-cli:latest
           env:
@@ -71,6 +80,7 @@ spec:
             - |
               set -e
               SSM_PATH={{ .Values.db.ssm.path | quote }}
+
               aws ssm get-parameters-by-path \
                 --path "$SSM_PATH" \
                 --with-decryption \
@@ -81,25 +91,102 @@ spec:
                   key=$(basename "$name")
                   printf '%s' "$value" > "/secrets/$key"
                 done
+
               echo "ssm-init: wrote $(ls /secrets | wc -l) secret(s) from $SSM_PATH"
           volumeMounts:
             - name: secrets-vol
               mountPath: /secrets
 
+        # Download and prepare the Keberneth Rebrand module
+        - name: rebrand-init
+          image: {{ include "zabbix-web.image" . }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+
+              MODULE_URL="https://github.com/Keberneth/Zabbix-Modules/archive/f0e4ede4c8eae73d8b1c856fcf59cb9dc6e11ee1.zip"
+
+              echo "Downloading Rebrand module..."
+
+              curl -fL --retry 3 "$MODULE_URL" -o /tmp/rebrand.zip
+
+              echo "Extracting Rebrand module..."
+
+              mkdir -p /tmp/rebrand-src
+              unzip -q /tmp/rebrand.zip -d /tmp/rebrand-src
+
+              MODULE_PATH="$(find /tmp/rebrand-src -type d -name Branding -print -quit)"
+
+              if [ -z "$MODULE_PATH" ]; then
+                echo "ERROR: Branding module directory not found"
+                exit 1
+              fi
+
+              if [ ! -f "$MODULE_PATH/manifest.json" ]; then
+                echo "ERROR: Module manifest not found"
+                exit 1
+              fi
+
+              echo "Copying module files..."
+
+              cp -a "$MODULE_PATH"/. /module/
+
+              echo "Setting module permissions..."
+
+              chown -R root:root /module
+              find /module -type d -exec chmod 755 {} \;
+              find /module -type f -exec chmod 644 {} \;
+
+              mkdir -p /module/assets/logos
+              chown 1997:1995 /module/assets/logos
+              chmod 775 /module/assets/logos
+
+              echo "Preparing temporary local configuration..."
+
+              mkdir -p /local-conf/rebrand
+              chown -R 1997:1995 /local-conf
+              chmod 775 /local-conf
+              chmod 775 /local-conf/rebrand
+
+              echo "Rebrand module initialization completed."
+
+          volumeMounts:
+            - name: rebrand-module-vol
+              mountPath: /module
+
+            - name: rebrand-local-conf-vol
+              mountPath: /local-conf
+
+      # ---- Main Zabbix Web container ---------------------------------------
       containers:
         - name: zabbix-web
           image: {{ include "zabbix-web.image" . }}
 
-          # ---- DB credentials sourced from in-memory /secrets/* --------------
-          # Reads each secret file written by ssm-init, exports the env var,
-          # then exec-replaces itself with docker-entrypoint.sh so PID 1 is the
-          # real entrypoint (correct signal handling, no shell wrapper overhead).
+          # ---- Startup command ---------------------------------------------
           command:
             - /bin/sh
             - -c
             - |
               set -e
-              
+
+              # Reset temporary Rebrand configuration on every container start
+              echo "Resetting temporary Rebrand configuration..."
+
+              rm -f /usr/share/zabbix/local/conf/brand.conf.php
+
+              rm -rf /usr/share/zabbix/local/conf/rebrand/*
+
+              rm -f /usr/share/zabbix/modules/Branding/assets/logos/*
+
+              echo "Temporary Rebrand configuration reset completed."
+
               # Load database credentials from in-memory secrets
               export DB_SERVER_HOST=$(cat /secrets/host)
               export DB_SERVER_PORT=$(cat /secrets/port)
@@ -115,62 +202,84 @@ spec:
               # Start the original Zabbix Web entrypoint
               exec /usr/bin/docker-entrypoint
 
+          # ---- Environment variables ---------------------------------------
           env:
-            # Require encrypted PostgreSQL connections
             - name: PGSSLMODE
               value: "require"
-            # Enable Zabbix frontend PostgreSQL TLS
+
             - name: ZBX_DB_ENCRYPTION
               value: "true"
+
             - name: ZBX_SERVER_HOST
               value: {{ include "zabbix-web.serverServiceName" . | quote }}
+
             - name: PHP_TZ
               value: {{ .Values.zabbixWeb.phpTz | quote }}
+
             - name: ZBX_SERVER_NAME
               value: "Prestack Monitoring"
 
           ports:
             - containerPort: {{ .Values.zabbixWeb.service.targetPort }}
 
+          # ---- Volume mounts -----------------------------------------------
           volumeMounts:
             - name: secrets-vol
               mountPath: /secrets
               readOnly: true
+
+            # Rebrand module code
+            - name: rebrand-module-vol
+              mountPath: /usr/share/zabbix/modules/Branding
+
+            # Temporary Rebrand configuration
+            - name: rebrand-local-conf-vol
+              mountPath: /usr/share/zabbix/local/conf
+
+            # Existing CSS and logo ConfigMap mounts
             {{- if .Values.branding.enabled }}
             - mountPath: /usr/share/zabbix/assets/styles/blue-theme.css
               name: precision-zabbix-logos
               readOnly: true
               subPath: blue-theme.css
+
             - mountPath: /usr/share/zabbix/assets/styles/dark-theme.css
               name: precision-zabbix-dark-theme
               readOnly: true
               subPath: dark-theme.css
+
             - mountPath: /usr/share/zabbix/assets/styles/hc-light.css
               name: precision-zabbix-hc-light
               readOnly: true
               subPath: hc-light.css
+
             - mountPath: /usr/share/zabbix/assets/styles/hc-dark.css
               name: precision-zabbix-hc-dark
               readOnly: true
               subPath: hc-dark.css
+
             - mountPath: /usr/share/zabbix/assets/precision-full-logo.svg
               name: precision-zabbix-logos
               readOnly: true
               subPath: precision-full-logo.svg
+
             - mountPath: /usr/share/zabbix/assets/precision-sidebar-logo.svg
               name: precision-zabbix-logos
               readOnly: true
               subPath: precision-sidebar-logo.svg
+
             - mountPath: /usr/share/zabbix/assets/precision-compact-logo.svg
               name: precision-zabbix-logos
               readOnly: true
               subPath: precision-compact-logo.svg
+
             - mountPath: /usr/share/zabbix/favicon.ico
               name: precision-zabbix-logos
               readOnly: true
               subPath: favicon.ico
             {{- end }}
 
+          # ---- Resources ----------------------------------------------------
           resources:
             requests:
               cpu: {{ .Values.zabbixWeb.resources.requests.cpu }}
