@@ -1,10 +1,9 @@
-
 {{/*
 =============================================================================
 Zabbix Web — Precision Logo ConfigMap
 =============================================================================
-Contains Precision SVG logos and Zabbix 8 brand configuration.
-Native Zabbix CSS and favicon remain untouched.
+Contains Precision SVG logos, favicon and Zabbix 8 brand configuration.
+Native Zabbix CSS remains untouched.
 */}}
 
 {{- if .Values.branding.enabled }}
@@ -34,4 +33,7 @@ data:
         'BRAND_LOGO_SIDEBAR' => '/assets/precision-sidebar-logo.svg',
         'BRAND_LOGO_SIDEBAR_COMPACT' => '/assets/precision-compact-logo.svg'
     ];
+
+binaryData:
+  precision-favicon.ico: {{ .Files.Get "files/branding/precision-favicon.ico" | b64enc | quote }}
 {{- end }}
