@@ -119,6 +119,9 @@ spec:
             # Require encrypted PostgreSQL connections
             - name: PGSSLMODE
               value: "require"
+            # Enable Zabbix frontend PostgreSQL TLS
+            - name: ZBX_DB_ENCRYPTION
+              value: "true"
             - name: ZBX_SERVER_HOST
               value: {{ include "zabbix-web.serverServiceName" . | quote }}
             - name: PHP_TZ
