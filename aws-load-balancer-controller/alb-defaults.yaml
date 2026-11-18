@@ -5,6 +5,10 @@ metadata:
 spec:
   scheme: internet-facing
   ipAddressType: ipv4
+  # Centrally managed shared ALB IngressGroup
+  group:
+    name: maas-production-public-alb
+    
   subnets:
     ids:
       - subnet-0d6782d8a98cc5561
