@@ -7,7 +7,7 @@ This Ingress handles the Zabbix web frontend:
 
 ALB-level configuration (scheme, subnets, ACM cert, WAF, SSL policy,
 group name) is centralized in the IngressClassParams resource
-(alb-public / maas-public-alb). This Ingress only defines:
+(maas-production-public-alb). This Ingress only defines:
   - Per-target-group settings (target-type, health check, backend protocol)
   - Per-rule settings (ssl-redirect)
   - Host-based routing rule
