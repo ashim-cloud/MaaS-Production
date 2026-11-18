@@ -98,11 +98,21 @@ spec:
             - /bin/sh
             - -c
             - |
+              set -e
+              
+              # Load database credentials from in-memory secrets
               export DB_SERVER_HOST=$(cat /secrets/host)
               export DB_SERVER_PORT=$(cat /secrets/port)
               export POSTGRES_USER=$(cat /secrets/user)
               export POSTGRES_PASSWORD=$(cat /secrets/password)
               export POSTGRES_DB=$(cat /secrets/dbname)
+
+              # Require SSL/TLS for PostgreSQL connections
+              export PGSSLMODE=require
+
+              echo "PostgreSQL SSL mode: $PGSSLMODE"
+
+              # Start the original Zabbix Web entrypoint
               exec /usr/bin/docker-entrypoint
 
           env:
