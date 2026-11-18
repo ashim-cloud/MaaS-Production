@@ -1,4 +1,3 @@
-
 {{/*
 =============================================================================
 Zabbix Web — Deployment
@@ -50,19 +49,11 @@ spec:
         - name: rebrand-local-conf-vol
           emptyDir: {}
 
+        # Precision logo ConfigMap only
         {{- if .Values.branding.enabled }}
         - name: precision-zabbix-logos
           configMap:
             name: {{ .Values.branding.configMapName }}
-        - name: precision-zabbix-dark-theme
-          configMap:
-            name: {{ .Values.branding.configMapName }}-dark-theme
-        - name: precision-zabbix-hc-light
-          configMap:
-            name: {{ .Values.branding.configMapName }}-hc-light
-        - name: precision-zabbix-hc-dark
-          configMap:
-            name: {{ .Values.branding.configMapName }}-hc-dark
         {{- end }}
 
       # ---- Init containers --------------------------------------------------
@@ -236,28 +227,8 @@ spec:
             - name: rebrand-local-conf-vol
               mountPath: /usr/share/zabbix/local/conf
 
-            # Existing CSS and logo ConfigMap mounts
+            # Precision logo assets only
             {{- if .Values.branding.enabled }}
-            - mountPath: /usr/share/zabbix/assets/styles/blue-theme.css
-              name: precision-zabbix-logos
-              readOnly: true
-              subPath: blue-theme.css
-
-            - mountPath: /usr/share/zabbix/assets/styles/dark-theme.css
-              name: precision-zabbix-dark-theme
-              readOnly: true
-              subPath: dark-theme.css
-
-            - mountPath: /usr/share/zabbix/assets/styles/hc-light.css
-              name: precision-zabbix-hc-light
-              readOnly: true
-              subPath: hc-light.css
-
-            - mountPath: /usr/share/zabbix/assets/styles/hc-dark.css
-              name: precision-zabbix-hc-dark
-              readOnly: true
-              subPath: hc-dark.css
-
             - mountPath: /usr/share/zabbix/assets/precision-full-logo.svg
               name: precision-zabbix-logos
               readOnly: true
@@ -272,11 +243,6 @@ spec:
               name: precision-zabbix-logos
               readOnly: true
               subPath: precision-compact-logo.svg
-
-            - mountPath: /usr/share/zabbix/favicon.ico
-              name: precision-zabbix-logos
-              readOnly: true
-              subPath: favicon.ico
             {{- end }}
 
           # ---- Resources ----------------------------------------------------
