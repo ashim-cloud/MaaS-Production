@@ -1,9 +1,10 @@
+
 {{/*
 =============================================================================
 Zabbix Web — Precision Logo ConfigMap
 =============================================================================
-Creates a ConfigMap containing only Precision SVG logo assets.
-Native Zabbix 8 CSS and favicon remain untouched.
+Contains Precision SVG logos and Zabbix 8 brand configuration.
+Native Zabbix CSS and favicon remain untouched.
 */}}
 
 {{- if .Values.branding.enabled }}
@@ -25,4 +26,12 @@ data:
 
   precision-compact-logo.svg: |
 {{ .Files.Get "files/branding/precision-compact-logo.svg" | indent 4 }}
+
+  brand.conf.php: |
+    <?php
+    return [
+        'BRAND_LOGO' => '/assets/precision-full-logo.svg',
+        'BRAND_LOGO_SIDEBAR' => '/assets/precision-sidebar-logo.svg',
+        'BRAND_LOGO_SIDEBAR_COMPACT' => '/assets/precision-compact-logo.svg'
+    ];
 {{- end }}
