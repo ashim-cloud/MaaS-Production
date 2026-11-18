@@ -159,8 +159,8 @@ zabbixWeb:
 
 branding:
   # -- Enable or disable the custom branding ConfigMap.
-  # When enabled, logo/CSS files from files/branding/ are mounted into the
-  # zabbix-web container to replace default Zabbix branding.
-  enabled: false
+  # -- Enable Precision logo-only branding.
+  # Native Zabbix CSS and favicon remain unchanged.
+  enabled: true
   # -- ConfigMap name for the branding assets.
   configMapName: "precision-zabbix-logos"
